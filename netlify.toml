@@ -1,0 +1,6 @@
+# netlify.toml
+[[redirects]]
+  from = "/gs/*"
+  to = "https://script.google.com/:splat"
+  status = 200
+  force = true

@@ -1,26 +1,9 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { resolve } from 'path';
-import fs from 'fs';
-
-// Función para copiar los redirects al build
-const copyRedirectsPlugin = () => {
-  return {
-    name: 'copy-redirects',
-    writeBundle() {
-      // Si existe _redirects, copiarlo al dist
-      if (fs.existsSync('_redirects')) {
-        fs.copyFileSync('_redirects', resolve('dist', '_redirects'));
-      }
-      
-      // netlify.toml se copia automáticamente si está en la raíz
-    }
-  };
-};
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), copyRedirectsPlugin()],
+  plugins: [react()],
   server: {
     proxy: {
       // Configuración de proxy mejorada

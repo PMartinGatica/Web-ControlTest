@@ -1,48 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Alert } from 'react-bootstrap';
+import { getAuthorizedEmails } from '../services/authService';
 
-// Lista de correos electrónicos permitidos
-const ALLOWED_EMAILS = [
-  'adriana.venialgo@newsan.com.ar',
-  'romina.morales@newsan.com.ar',
-  'joaquin.acevedo@newsan.com.ar',
-  'rocio.gamiz@newsan.com.ar',
-  'lucia.castronuevo@newsan.com.ar',
-  'azul.gon@newsan.com.ar',
-  'guadalupe.cabana@newsan.com.ar',
-  'paulacecilia.galvan@newsan.com.ar',
-  'lucas.ruiz@newsan.com.ar',
-  'maximiliano.vargas@newsan.com.ar',
-  'ester.gago@newsan.com.ar',
-  'brisa.caballero@newsan.com.ar',
-  'daniel.maidana@newsan.com.ar',
-  'mairaalejandra.morales@newsan.com.ar',
-  'alisondenise.mendez@newsan.com.ar',
-  'reneorlando.maldonado@newsan.com.ar',
-  'bella.quinteros@newsan.com.ar',
-  'maria.figueroa@newsan.com.ar',
-  'mayra.tapia@newsan.com.ar',
-  'mario.barrios@newsan.com.ar',
-  'elias.esperguen@newsan.com.ar',
-  'samuel.molina@newsan.com.ar',
-  'facundomatias.tisera@newsan.com.ar',
-  'ailin.chavarria@newsan.com.ar',
-  'maria.requena@newsan.com.ar',
-  'teresita.flores@newsan.com.ar',
-  'fiorela.faydella@newsan.com.ar',
-  'carlos.ramos@newsan.com.ar',
-  'luismiguel.dimatteo@newsan.com.ar',
-  'ruthevelin.gomez@newsan.com.ar',
-  'sebastian.orellano@newsan.com.ar',
-  'brian.moreyra@newsan.com.ar',
-  'cristian.ramirez@newsan.com.ar',
-  'pablomartin.gatica@newsan.com.ar'
-];
+// Lista temporal mientras carga los datos
+const INITIAL_EMAILS = ['pablomartin.gatica@newsan.com.ar'];
 
 const LoginPage = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [allowedEmails, setAllowedEmails] = useState(INITIAL_EMAILS);
+  const [isLoadingEmails, setIsLoadingEmails] = useState(true);
+
+  // Cargar emails permitidos al iniciar
+  useEffect(() => {
+    const loadAuthorizedEmails = async () => {
+      try {
+        const emails = await getAuthorizedEmails();
+        setAllowedEmails(emails);
+      } catch (error) {
+        console.error('Error cargando emails autorizados:', error);
+      } finally {
+        setIsLoadingEmails(false);
+      }
+    };
+
+    loadAuthorizedEmails();
+  }, []);
 
   const validateEmail = (email) => {
     // Verificar formato básico de correo
@@ -58,7 +42,7 @@ const LoginPage = ({ onLogin }) => {
     }
     
     // Verificar si está en la lista de permitidos
-    return ALLOWED_EMAILS.includes(email.toLowerCase());
+    return allowedEmails.includes(email.toLowerCase());
   };
 
   const handleSubmit = async (e) => {
@@ -67,6 +51,11 @@ const LoginPage = ({ onLogin }) => {
     
     if (!email) {
       setError('Por favor ingrese su correo electrónico');
+      return;
+    }
+
+    if (isLoadingEmails) {
+      setError('El sistema está cargando la lista de usuarios autorizados. Por favor, espere un momento.');
       return;
     }
     
@@ -97,6 +86,7 @@ const LoginPage = ({ onLogin }) => {
         <p className="login-subtitle">Usar tu cuenta de Newsan</p>
         
         {error && <Alert variant="danger" className="mb-3">{error}</Alert>}
+        {isLoadingEmails && <Alert variant="info" className="mb-3">Cargando usuarios autorizados...</Alert>}
         
         <form onSubmit={handleSubmit}>
           <input
@@ -111,7 +101,7 @@ const LoginPage = ({ onLogin }) => {
           
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || isLoadingEmails}
             className="login-button w-100"
           >
             {isLoading ? 'Iniciando sesión...' : 'Iniciar sesión'}
